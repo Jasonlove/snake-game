@@ -527,7 +527,7 @@ function drawStartScreen() {
   // === 标题（居中） ===
   ctx.fillStyle = '#fff';
   ctx.font = 'bold 24px Arial';
-  ctx.fillText('康泰园贪吃蛇', windowWidth / 2, panelY + 105);
+  ctx.fillText('进化贪吃蛇', windowWidth / 2, panelY + 105);
   
   // 副标题
   ctx.fillStyle = 'rgba(255, 255, 255, 0.5)';
