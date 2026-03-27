@@ -179,42 +179,12 @@ function update() {
 // ============== 绘制函数 ==============
 
 function drawPlayArea() {
-  // 游戏区域阴影
-  ctx.save();
-  ctx.shadowColor = 'rgba(0,0,0,0.5)';
-  ctx.shadowBlur = 30;
-  ctx.shadowOffsetX = 0;
-  ctx.shadowOffsetY = 10;
-  
-  // 游戏区域背景 - 立体感
-  const areaGrad = ctx.createLinearGradient(PLAY_LEFT, PLAY_TOP, PLAY_LEFT, PLAY_TOP + ROWS * GRID_SIZE);
-  areaGrad.addColorStop(0, 'rgba(30,30,50,0.95)');
-  areaGrad.addColorStop(1, 'rgba(20,20,40,0.95)');
-  
-  ctx.fillStyle = areaGrad;
-  roundRect(ctx, PLAY_LEFT - 10, PLAY_TOP - 10, COLS * GRID_SIZE + 20, ROWS * GRID_SIZE + 20, 15);
-  ctx.restore();
-  
-  // 立体边框
-  const borderGrad = ctx.createLinearGradient(PLAY_LEFT, PLAY_TOP, PLAY_LEFT + COLS * GRID_SIZE, PLAY_TOP + ROWS * GRID_SIZE);
-  borderGrad.addColorStop(0, currentEvolution.headColor);
-  borderGrad.addColorStop(0.5, currentEvolution.color);
-  borderGrad.addColorStop(1, currentEvolution.headColor);
-  
-  ctx.strokeStyle = borderGrad;
-  ctx.lineWidth = 3;
-  roundRectStroke(ctx, PLAY_LEFT - 8, PLAY_TOP - 8, COLS * GRID_SIZE + 16, ROWS * GRID_SIZE + 16, 12);
-  
-  // 内发光
-  ctx.save();
-  ctx.globalAlpha = 0.1;
-  ctx.strokeStyle = '#fff';
-  ctx.lineWidth = 1;
-  roundRectStroke(ctx, PLAY_LEFT - 5, PLAY_TOP - 5, COLS * GRID_SIZE + 10, ROWS * GRID_SIZE + 10, 10);
-  ctx.restore();
+  // 网格背景（无边框）
+  ctx.fillStyle = 'rgba(20,20,35,0.8)';
+  ctx.fillRect(PLAY_LEFT - 5, PLAY_TOP - 5, COLS * GRID_SIZE + 10, ROWS * GRID_SIZE + 10);
   
   // 网格
-  ctx.strokeStyle = 'rgba(100,100,120,0.15)';
+  ctx.strokeStyle = 'rgba(100,100,120,0.12)';
   ctx.lineWidth = 0.5;
   for (let i = 0; i <= COLS; i++) {
     ctx.beginPath();
