@@ -398,10 +398,10 @@ function drawTopBar() {
 }
 
 // ============== 方向键控制 - 居中 ==============
-const BTN_SIZE = 60;
-const BTN_GAP = 8;
-const CONTROL_HEIGHT = BTN_SIZE * 3 + BTN_GAP * 2 + 40;
-const CONTROL_Y = PLAY_TOP + ROWS * GRID_SIZE + 30; // 紧贴游戏区域下方
+const BTN_SIZE = 55;
+const BTN_GAP = 6;
+const CONTROL_HEIGHT = BTN_SIZE * 3 + BTN_GAP * 2 + 30;
+const CONTROL_Y = PLAY_TOP + ROWS * GRID_SIZE - 20; // 方向键往上移动，部分重叠游戏区域
 
 const BUTTONS = {
   up:    { x: windowWidth / 2 - BTN_SIZE / 2, y: CONTROL_Y },
