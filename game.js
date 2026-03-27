@@ -709,4 +709,4 @@ tt.onTouchEnd((res) => {
 // 初始化
 drawStartScreen();
 
-console.log('🐍 康泰园贪吃蛇 V3 - 立体设计版已启动！');
+console.log('🐍 进化贪吃蛇 V3 - 立体设计版已启动！');
