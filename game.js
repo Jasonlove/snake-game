@@ -554,259 +554,151 @@ function draw() {
 }
 
 function drawStartScreen() {
-  // 深色渐变背景
-  const bgGrad = ctx.createLinearGradient(0, 0, windowWidth, windowHeight);
-  bgGrad.addColorStop(0, '#0d0d1a');
-  bgGrad.addColorStop(0.3, '#1a1a2e');
-  bgGrad.addColorStop(0.7, '#16213e');
-  bgGrad.addColorStop(1, '#0f0f23');
+  // 渐变背景
+  const bgGrad = ctx.createLinearGradient(0, 0, 0, windowHeight);
+  bgGrad.addColorStop(0, '#1a1a2e');
+  bgGrad.addColorStop(1, '#16213e');
   ctx.fillStyle = bgGrad;
   ctx.fillRect(0, 0, windowWidth, windowHeight);
   
-  // 装饰性星空效果
-  ctx.fillStyle = 'rgba(255,255,255,0.3)';
-  for (let i = 0; i < 50; i++) {
-    const x = (Math.sin(i * 7.3) + 1) * windowWidth / 2;
-    const y = (Math.cos(i * 5.7) + 1) * windowHeight / 2;
-    const r = Math.random() * 2 + 0.5;
-    ctx.beginPath();
-    ctx.arc(x, y, r, 0, Math.PI * 2);
-    ctx.fill();
-  }
-  
-  // 顶部光晕
-  ctx.save();
-  ctx.globalAlpha = 0.2;
-  const topGlow = ctx.createRadialGradient(windowWidth / 2, -100, 0, windowWidth / 2, -100, 400);
-  topGlow.addColorStop(0, '#667eea');
-  topGlow.addColorStop(1, 'transparent');
-  ctx.fillStyle = topGlow;
-  ctx.fillRect(0, 0, windowWidth, 400);
-  ctx.restore();
-  
-  // 底部光晕
-  ctx.save();
-  ctx.globalAlpha = 0.15;
-  const botGlow = ctx.createRadialGradient(windowWidth / 2, windowHeight + 100, 0, windowWidth / 2, windowHeight + 100, 350);
-  botGlow.addColorStop(0, '#f093fb');
-  botGlow.addColorStop(1, 'transparent');
-  ctx.fillStyle = botGlow;
-  ctx.fillRect(0, windowHeight - 350, windowWidth, 350);
-  ctx.restore();
-  
-  // === 主卡片 ===
-  const cardY = windowHeight / 2 - 200;
-  const cardH = 400;
-  
-  // 卡片阴影
-  ctx.save();
-  ctx.shadowColor = 'rgba(102, 126, 234, 0.4)';
-  ctx.shadowBlur = 40;
-  ctx.shadowOffsetY = 15;
-  
-  // 卡片渐变背景
-  const cardGrad = ctx.createLinearGradient(30, cardY, windowWidth - 30, cardY + cardH);
-  cardGrad.addColorStop(0, 'rgba(30, 30, 50, 0.95)');
-  cardGrad.addColorStop(0.5, 'rgba(35, 35, 60, 0.95)');
-  cardGrad.addColorStop(1, 'rgba(25, 25, 45, 0.95)');
-  
-  ctx.fillStyle = cardGrad;
-  roundRect(ctx, 30, cardY, windowWidth - 60, cardH, 30);
-  ctx.restore();
-  
-  // 卡片边框光效
-  ctx.save();
-  ctx.strokeStyle = 'rgba(102, 126, 234, 0.5)';
-  ctx.lineWidth = 2;
-  roundRectStroke(ctx, 30, cardY, windowWidth - 60, cardH, 30);
-  ctx.restore();
-  
-  // 内发光
+  // 装饰光晕
   ctx.save();
   ctx.globalAlpha = 0.1;
-  ctx.strokeStyle = '#fff';
-  ctx.lineWidth = 1;
-  roundRectStroke(ctx, 35, cardY + 5, windowWidth - 70, cardH - 10, 27);
+  const glow = ctx.createRadialGradient(windowWidth / 2, windowHeight / 2, 0, windowWidth / 2, windowHeight / 2, 300);
+  glow.addColorStop(0, '#667eea');
+  glow.addColorStop(1, 'transparent');
+  ctx.fillStyle = glow;
+  ctx.fillRect(0, 0, windowWidth, windowHeight);
   ctx.restore();
   
-  // === 蛇图标 ===
-  const iconY = cardY + 50;
+  // === 主面板（垂直居中） ===
+  const panelW = windowWidth - 50;
+  const panelH = 420;
+  const panelX = (windowWidth - panelW) / 2;
+  const panelY = (windowHeight - panelH) / 2;
   
-  // 图标背景圆
+  // 面板背景
+  ctx.save();
+  ctx.shadowColor = 'rgba(0, 0, 0, 0.3)';
+  ctx.shadowBlur = 30;
+  ctx.shadowOffsetY = 10;
+  
+  ctx.fillStyle = 'rgba(30, 35, 50, 0.95)';
+  roundRect(ctx, panelX, panelY, panelW, panelH, 25);
+  ctx.restore();
+  
+  // 面板边框
+  ctx.strokeStyle = 'rgba(100, 120, 180, 0.3)';
+  ctx.lineWidth = 2;
+  roundRectStroke(ctx, panelX, panelY, panelW, panelH, 25);
+  
+  // === 蛇图标（居中） ===
+  const iconY = panelY + 50;
   ctx.save();
   ctx.shadowColor = 'rgba(76, 175, 80, 0.5)';
-  ctx.shadowBlur = 20;
-  
-  const iconGrad = ctx.createRadialGradient(windowWidth / 2, iconY + 35, 0, windowWidth / 2, iconY + 35, 45);
-  iconGrad.addColorStop(0, 'rgba(76, 175, 80, 0.3)');
-  iconGrad.addColorStop(1, 'rgba(76, 175, 80, 0.1)');
-  
-  ctx.fillStyle = iconGrad;
-  ctx.beginPath();
-  ctx.arc(windowWidth / 2, iconY + 35, 45, 0, Math.PI * 2);
-  ctx.fill();
-  ctx.restore();
-  
-  // 蛇图标文字
-  ctx.save();
-  ctx.shadowColor = '#4CAF50';
   ctx.shadowBlur = 15;
-  ctx.font = '50px Arial';
+  ctx.font = '60px Arial';
   ctx.textAlign = 'center';
-  ctx.textBaseline = 'middle';
-  ctx.fillText('🐍', windowWidth / 2, iconY + 35);
+  ctx.fillText('🐍', windowWidth / 2, iconY + 20);
   ctx.restore();
   
-  // === 标题 ===
+  // === 标题（居中） ===
   ctx.save();
-  ctx.shadowColor = 'rgba(255, 255, 255, 0.3)';
-  ctx.shadowBlur = 10;
-  
-  // 标题渐变
-  const titleGrad = ctx.createLinearGradient(windowWidth / 2 - 100, cardY + 110, windowWidth / 2 + 100, cardY + 130);
-  titleGrad.addColorStop(0, '#fff');
-  titleGrad.addColorStop(0.5, '#e0e0e0');
-  titleGrad.addColorStop(1, '#fff');
-  
-  ctx.fillStyle = titleGrad;
-  ctx.font = 'bold 28px Arial';
+  ctx.shadowColor = 'rgba(255, 255, 255, 0.2)';
+  ctx.shadowBlur = 8;
+  ctx.fillStyle = '#fff';
+  ctx.font = 'bold 26px Arial';
   ctx.textAlign = 'center';
-  ctx.textBaseline = 'alphabetic';
-  ctx.fillText('康泰园贪吃蛇', windowWidth / 2, cardY + 135);
+  ctx.fillText('康泰园贪吃蛇', windowWidth / 2, panelY + 115);
   ctx.restore();
   
   // 副标题
   ctx.fillStyle = 'rgba(255, 255, 255, 0.5)';
   ctx.font = '14px Arial';
-  ctx.fillText('经典游戏 · 全新体验', windowWidth / 2, cardY + 160);
+  ctx.fillText('经典游戏 · 全新体验', windowWidth / 2, panelY + 142);
   
-  // === 游戏特色 ===
-  const featureY = cardY + 195;
+  // === 分割线 ===
+  ctx.strokeStyle = 'rgba(255, 255, 255, 0.1)';
+  ctx.lineWidth = 1;
+  ctx.beginPath();
+  ctx.moveTo(panelX + 30, panelY + 165);
+  ctx.lineTo(panelX + panelW - 30, panelY + 165);
+  ctx.stroke();
   
-  // 特色标签
-  const features = [
-    { icon: '🎮', text: '方向键控制' },
-    { icon: '🌈', text: '蛇身进化' },
-    { icon: '🏆', text: '最高分记录' }
-  ];
+  // === 游戏说明（居中） ===
+  const infoY = panelY + 195;
   
-  const tagWidth = 85;
-  const tagStartX = windowWidth / 2 - (tagWidth * 1.5 + 10);
+  ctx.fillStyle = 'rgba(255, 255, 255, 0.7)';
+  ctx.font = '14px Arial';
+  ctx.fillText('🎯 点击方向键或滑动控制蛇移动', windowWidth / 2, infoY);
   
-  features.forEach((f, i) => {
-    const tx = tagStartX + i * (tagWidth + 10);
-    
-    // 标签背景
-    ctx.save();
-    ctx.shadowColor = 'rgba(0,0,0,0.2)';
-    ctx.shadowBlur = 5;
-    ctx.shadowOffsetY = 2;
-    
-    const tagGrad = ctx.createLinearGradient(tx, featureY, tx, featureY + 32);
-    tagGrad.addColorStop(0, 'rgba(60, 60, 80, 0.8)');
-    tagGrad.addColorStop(1, 'rgba(40, 40, 60, 0.8)');
-    
-    ctx.fillStyle = tagGrad;
-    roundRect(ctx, tx, featureY, tagWidth, 32, 8);
-    ctx.restore();
-    
-    // 标签文字
-    ctx.fillStyle = 'rgba(255,255,255,0.8)';
-    ctx.font = '12px Arial';
-    ctx.textAlign = 'center';
-    ctx.fillText(`${f.icon} ${f.text}`, tx + tagWidth / 2, featureY + 21);
-  });
+  ctx.fillStyle = 'rgba(255, 255, 255, 0.6)';
+  ctx.font = '13px Arial';
+  ctx.fillText('每吃 10 个食物，蛇会进化变色！', windowWidth / 2, infoY + 25);
   
-  // === 进化预览 ===
-  const evoY = cardY + 250;
+  // === 进化颜色条（居中） ===
+  const evoY = panelY + 250;
   
-  ctx.fillStyle = 'rgba(255,255,255,0.4)';
+  ctx.fillStyle = 'rgba(255, 255, 255, 0.4)';
   ctx.font = '12px Arial';
   ctx.fillText('━━━  进化路线  ━━━', windowWidth / 2, evoY);
   
-  // 进化颜色条
   const evoColors = ['#4CAF50', '#2196F3', '#9C27B0', '#FF9800', '#E91E63', '#F44336', '#FFD700'];
-  const evoBarY = evoY + 15;
-  const barWidth = 200;
-  const barX = windowWidth / 2 - barWidth / 2;
-  const segW = barWidth / evoColors.length;
+  const barW = 180;
+  const barX = windowWidth / 2 - barW / 2;
+  const segW = barW / evoColors.length;
   
   evoColors.forEach((c, i) => {
-    const grad = ctx.createLinearGradient(barX + i * segW, evoBarY, barX + (i + 1) * segW, evoBarY + 10);
-    grad.addColorStop(0, c);
-    grad.addColorStop(1, adjustColor(c, -30));
-    ctx.fillStyle = grad;
-    roundRect(ctx, barX + i * segW, evoBarY, segW - 2, 10, 3);
+    ctx.fillStyle = c;
+    roundRect(ctx, barX + i * segW, evoY + 12, segW - 2, 12, 3);
   });
   
-  // === 开始按钮 ===
-  const btnY = cardY + 310;
-  const btnW = 160;
-  const btnH = 50;
-  const btnX = windowWidth / 2 - btnW / 2;
+  // 进化名称
+  ctx.fillStyle = 'rgba(255, 255, 255, 0.5)';
+  ctx.font = '11px Arial';
+  ctx.fillText('小青蛇 → 蓝蛇 → 紫蛇 → 金蛇 → 玫瑰 → 火焰 → 金龙蛇', windowWidth / 2, evoY + 42);
   
-  // 按钮发光动画效果（静态模拟）
+  // === 开始按钮（居中） ===
+  const btnW = 150;
+  const btnH = 48;
+  const btnX = windowWidth / 2 - btnW / 2;
+  const btnY = panelY + 310;
+  
+  // 按钮阴影
   ctx.save();
-  ctx.shadowColor = 'rgba(76, 175, 80, 0.6)';
-  ctx.shadowBlur = 25;
+  ctx.shadowColor = 'rgba(76, 175, 80, 0.5)';
+  ctx.shadowBlur = 20;
   ctx.shadowOffsetY = 5;
   
   // 按钮渐变
   const btnGrad = ctx.createLinearGradient(btnX, btnY, btnX + btnW, btnY + btnH);
   btnGrad.addColorStop(0, '#66BB6A');
-  btnGrad.addColorStop(0.5, '#4CAF50');
-  btnGrad.addColorStop(1, '#388E3C');
+  btnGrad.addColorStop(1, '#43A047');
   
   ctx.fillStyle = btnGrad;
-  roundRect(ctx, btnX, btnY, btnW, btnH, 25);
-  ctx.restore();
-  
-  // 按钮高光
-  ctx.save();
-  ctx.globalAlpha = 0.3;
-  ctx.fillStyle = '#fff';
-  roundRect(ctx, btnX + 10, btnY + 5, btnW - 20, btnH / 2 - 5, 15);
+  roundRect(ctx, btnX, btnY, btnW, btnH, 24);
   ctx.restore();
   
   // 按钮文字
-  ctx.save();
-  ctx.shadowColor = 'rgba(0,0,0,0.3)';
-  ctx.shadowBlur = 3;
-  ctx.shadowOffsetY = 2;
   ctx.fillStyle = '#fff';
   ctx.font = 'bold 18px Arial';
   ctx.fillText('🎮 开始游戏', windowWidth / 2, btnY + btnH / 2 + 6);
-  ctx.restore();
   
-  // === 最高分 ===
+  // === 最高分（居中） ===
   try {
     const savedHigh = tt.getStorageSync('snake_highscore');
     if (savedHigh) {
       highScore = savedHigh;
-      
-      // 最高分徽章
-      ctx.save();
-      ctx.shadowColor = 'rgba(255, 215, 0, 0.3)';
-      ctx.shadowBlur = 10;
-      
-      const badgeGrad = ctx.createLinearGradient(windowWidth / 2 - 60, cardY + cardH - 55, windowWidth / 2 + 60, cardY + cardH - 30);
-      badgeGrad.addColorStop(0, 'rgba(255, 215, 0, 0.2)');
-      badgeGrad.addColorStop(1, 'rgba(255, 193, 7, 0.2)');
-      
-      ctx.fillStyle = badgeGrad;
-      roundRect(ctx, windowWidth / 2 - 60, cardY + cardH - 55, 120, 28, 14);
-      ctx.restore();
-      
       ctx.fillStyle = '#ffd700';
       ctx.font = 'bold 14px Arial';
-      ctx.fillText(`🏆 最高分: ${highScore}`, windowWidth / 2, cardY + cardH - 35);
+      ctx.fillText(`🏆 最高分: ${highScore}`, windowWidth / 2, panelY + panelH - 25);
     }
   } catch (e) {}
   
-  // === 版本号 ===
-  ctx.fillStyle = 'rgba(255,255,255,0.2)';
-  ctx.font = '10px Arial';
-  ctx.fillText('V3.0 立体设计版', windowWidth / 2, windowHeight - 30);
+  // 版本号
+  ctx.fillStyle = 'rgba(255, 255, 255, 0.3)';
+  ctx.font = '11px Arial';
+  ctx.fillText('V3.0', windowWidth / 2, windowHeight - 20);
 }
 
 function drawGameOver() {
