@@ -381,54 +381,21 @@ const BUTTONS = {
 };
 
 function drawControls() {
-  // 控制区背景 - 立体感
-  ctx.save();
-  ctx.shadowColor = 'rgba(0,0,0,0.3)';
-  ctx.shadowBlur = 20;
-  ctx.shadowOffsetY = 5;
-  
-  const ctrlGrad = ctx.createLinearGradient(0, CONTROL_Y - 15, 0, CONTROL_Y + CONTROL_HEIGHT);
-  ctrlGrad.addColorStop(0, 'rgba(35,35,55,0.95)');
-  ctrlGrad.addColorStop(1, 'rgba(25,25,45,0.95)');
-  
-  ctx.fillStyle = ctrlGrad;
-  roundRect(ctx, 10, CONTROL_Y - 15, windowWidth - 20, CONTROL_HEIGHT, 20);
-  ctx.restore();
-  
-  // 方向键
+  // 方向键（无背景框）
   Object.entries(BUTTONS).forEach(([dir, pos]) => {
     const isActive = direction === dir;
     
-    // 按钮阴影
-    ctx.save();
-    ctx.shadowColor = 'rgba(0,0,0,0.4)';
-    ctx.shadowBlur = 10;
-    ctx.shadowOffsetY = 3;
-    
-    // 按钮渐变
-    const btnGrad = ctx.createLinearGradient(pos.x, pos.y, pos.x, pos.y + BTN_SIZE);
+    // 按钮背景
     if (isActive) {
-      btnGrad.addColorStop(0, currentEvolution.headColor);
-      btnGrad.addColorStop(1, currentEvolution.color);
+      ctx.fillStyle = currentEvolution.color;
     } else {
-      btnGrad.addColorStop(0, 'rgba(80,80,100,0.9)');
-      btnGrad.addColorStop(1, 'rgba(50,50,70,0.9)');
+      ctx.fillStyle = 'rgba(60,60,80,0.8)';
     }
-    
-    ctx.fillStyle = btnGrad;
-    roundRect(ctx, pos.x, pos.y, BTN_SIZE, BTN_SIZE, 15);
-    ctx.restore();
-    
-    // 按钮高光
-    ctx.save();
-    ctx.globalAlpha = 0.3;
-    ctx.fillStyle = '#fff';
-    roundRect(ctx, pos.x + 5, pos.y + 5, BTN_SIZE - 10, BTN_SIZE / 2 - 5, 10);
-    ctx.restore();
+    roundRect(ctx, pos.x, pos.y, BTN_SIZE, BTN_SIZE, 12);
     
     // 箭头
     ctx.fillStyle = isActive ? '#fff' : 'rgba(255,255,255,0.7)';
-    ctx.font = 'bold 26px Arial';
+    ctx.font = 'bold 24px Arial';
     ctx.textAlign = 'center';
     ctx.textBaseline = 'middle';
     
@@ -541,117 +508,73 @@ function drawStartScreen() {
   ctx.fillRect(0, 0, windowWidth, windowHeight);
   ctx.restore();
   
-  // === 主面板（垂直居中） ===
-  const panelW = windowWidth - 50;
-  const panelH = 420;
+  // === 主面板（垂直居中，无边框） ===
+  const panelW = windowWidth - 60;
+  const panelH = 380;
   const panelX = (windowWidth - panelW) / 2;
   const panelY = (windowHeight - panelH) / 2;
   
-  // 面板背景
-  ctx.save();
-  ctx.shadowColor = 'rgba(0, 0, 0, 0.3)';
-  ctx.shadowBlur = 30;
-  ctx.shadowOffsetY = 10;
-  
-  ctx.fillStyle = 'rgba(30, 35, 50, 0.95)';
-  roundRect(ctx, panelX, panelY, panelW, panelH, 25);
-  ctx.restore();
-  
-  // 面板边框
-  ctx.strokeStyle = 'rgba(100, 120, 180, 0.3)';
-  ctx.lineWidth = 2;
-  roundRectStroke(ctx, panelX, panelY, panelW, panelH, 25);
+  // 面板背景（无边框）
+  ctx.fillStyle = 'rgba(25, 28, 40, 0.9)';
+  roundRect(ctx, panelX, panelY, panelW, panelH, 20);
   
   // === 蛇图标（居中） ===
-  const iconY = panelY + 50;
-  ctx.save();
-  ctx.shadowColor = 'rgba(76, 175, 80, 0.5)';
-  ctx.shadowBlur = 15;
-  ctx.font = '60px Arial';
+  const iconY = panelY + 45;
+  ctx.font = '55px Arial';
   ctx.textAlign = 'center';
   ctx.fillText('🐍', windowWidth / 2, iconY + 20);
-  ctx.restore();
   
   // === 标题（居中） ===
-  ctx.save();
-  ctx.shadowColor = 'rgba(255, 255, 255, 0.2)';
-  ctx.shadowBlur = 8;
   ctx.fillStyle = '#fff';
-  ctx.font = 'bold 26px Arial';
-  ctx.textAlign = 'center';
-  ctx.fillText('康泰园贪吃蛇', windowWidth / 2, panelY + 115);
-  ctx.restore();
+  ctx.font = 'bold 24px Arial';
+  ctx.fillText('康泰园贪吃蛇', windowWidth / 2, panelY + 105);
   
   // 副标题
   ctx.fillStyle = 'rgba(255, 255, 255, 0.5)';
-  ctx.font = '14px Arial';
-  ctx.fillText('经典游戏 · 全新体验', windowWidth / 2, panelY + 142);
-  
-  // === 分割线 ===
-  ctx.strokeStyle = 'rgba(255, 255, 255, 0.1)';
-  ctx.lineWidth = 1;
-  ctx.beginPath();
-  ctx.moveTo(panelX + 30, panelY + 165);
-  ctx.lineTo(panelX + panelW - 30, panelY + 165);
-  ctx.stroke();
+  ctx.font = '13px Arial';
+  ctx.fillText('经典游戏 · 全新体验', windowWidth / 2, panelY + 128);
   
   // === 游戏说明（居中） ===
-  const infoY = panelY + 195;
+  const infoY = panelY + 165;
   
   ctx.fillStyle = 'rgba(255, 255, 255, 0.7)';
-  ctx.font = '14px Arial';
+  ctx.font = '13px Arial';
   ctx.fillText('🎯 点击方向键或滑动控制蛇移动', windowWidth / 2, infoY);
   
-  ctx.fillStyle = 'rgba(255, 255, 255, 0.6)';
-  ctx.font = '13px Arial';
-  ctx.fillText('每吃 10 个食物，蛇会进化变色！', windowWidth / 2, infoY + 25);
+  ctx.fillStyle = 'rgba(255, 255, 255, 0.5)';
+  ctx.font = '12px Arial';
+  ctx.fillText('每吃 10 个食物，蛇会进化变色！', windowWidth / 2, infoY + 22);
   
   // === 进化颜色条（居中） ===
-  const evoY = panelY + 250;
+  const evoY = panelY + 220;
   
   ctx.fillStyle = 'rgba(255, 255, 255, 0.4)';
-  ctx.font = '12px Arial';
+  ctx.font = '11px Arial';
   ctx.fillText('━━━  进化路线  ━━━', windowWidth / 2, evoY);
   
   const evoColors = ['#4CAF50', '#2196F3', '#9C27B0', '#FF9800', '#E91E63', '#F44336', '#FFD700'];
-  const barW = 180;
+  const barW = 160;
   const barX = windowWidth / 2 - barW / 2;
   const segW = barW / evoColors.length;
   
   evoColors.forEach((c, i) => {
     ctx.fillStyle = c;
-    roundRect(ctx, barX + i * segW, evoY + 12, segW - 2, 12, 3);
+    roundRect(ctx, barX + i * segW, evoY + 10, segW - 2, 10, 3);
   });
   
-  // 进化名称
-  ctx.fillStyle = 'rgba(255, 255, 255, 0.5)';
-  ctx.font = '11px Arial';
-  ctx.fillText('小青蛇 → 蓝蛇 → 紫蛇 → 金蛇 → 玫瑰 → 火焰 → 金龙蛇', windowWidth / 2, evoY + 42);
-  
   // === 开始按钮（居中） ===
-  const btnW = 150;
-  const btnH = 48;
+  const btnW = 140;
+  const btnH = 44;
   const btnX = windowWidth / 2 - btnW / 2;
-  const btnY = panelY + 310;
+  const btnY = panelY + 280;
   
-  // 按钮阴影
-  ctx.save();
-  ctx.shadowColor = 'rgba(76, 175, 80, 0.5)';
-  ctx.shadowBlur = 20;
-  ctx.shadowOffsetY = 5;
-  
-  // 按钮渐变
-  const btnGrad = ctx.createLinearGradient(btnX, btnY, btnX + btnW, btnY + btnH);
-  btnGrad.addColorStop(0, '#66BB6A');
-  btnGrad.addColorStop(1, '#43A047');
-  
-  ctx.fillStyle = btnGrad;
-  roundRect(ctx, btnX, btnY, btnW, btnH, 24);
-  ctx.restore();
+  // 按钮背景
+  ctx.fillStyle = '#4CAF50';
+  roundRect(ctx, btnX, btnY, btnW, btnH, 22);
   
   // 按钮文字
   ctx.fillStyle = '#fff';
-  ctx.font = 'bold 18px Arial';
+  ctx.font = 'bold 17px Arial';
   ctx.fillText('🎮 开始游戏', windowWidth / 2, btnY + btnH / 2 + 6);
   
   // === 最高分（居中） ===
@@ -660,15 +583,15 @@ function drawStartScreen() {
     if (savedHigh) {
       highScore = savedHigh;
       ctx.fillStyle = '#ffd700';
-      ctx.font = 'bold 14px Arial';
-      ctx.fillText(`🏆 最高分: ${highScore}`, windowWidth / 2, panelY + panelH - 25);
+      ctx.font = 'bold 13px Arial';
+      ctx.fillText(`🏆 最高分: ${highScore}`, windowWidth / 2, panelY + panelH - 20);
     }
   } catch (e) {}
   
   // 版本号
-  ctx.fillStyle = 'rgba(255, 255, 255, 0.3)';
-  ctx.font = '11px Arial';
-  ctx.fillText('V3.0', windowWidth / 2, windowHeight - 20);
+  ctx.fillStyle = 'rgba(255, 255, 255, 0.25)';
+  ctx.font = '10px Arial';
+  ctx.fillText('V3.0', windowWidth / 2, windowHeight - 15);
 }
 
 function drawGameOver() {
