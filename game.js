@@ -1,6 +1,6 @@
 /**
- * 贪吃蛇小游戏 V2 - 抖音小游戏版
- * 康泰园主题 - 带方向键控制 + 蛇颜色进化
+ * 贪吃蛇小游戏 V3 - 抖音小游戏版
+ * 康泰园主题 - 立体设计 + 优化控制
  */
 
 const canvas = tt.createCanvas();
@@ -15,10 +15,9 @@ ctx.scale(pixelRatio, pixelRatio);
 const CONFIG = {
   gridSize: 22,
   cols: Math.floor((windowWidth - 40) / 22),
-  rows: Math.floor((windowHeight - 320) / 22),  // 留出顶部和底部空间
+  rows: Math.floor((windowHeight - 280) / 22),
   speed: 180,
-  playAreaTop: 100,
-  playAreaBottom: 180,  // 底部控制区高度
+  playAreaTop: 90,
 };
 
 const GRID_SIZE = CONFIG.gridSize;
@@ -47,15 +46,49 @@ let score = 0;
 let highScore = 0;
 let gameLoop = null;
 let gameState = 'start';
-let foodEaten = 0;  // 吃了多少个食物
+let foodEaten = 0;
 let currentEvolution = SNAKE_EVOLUTION[0];
 
-// 背景图
-let bgImage = null;
-try {
-  bgImage = tt.createImage();
-  bgImage.src = 'assets/bg.png';
-} catch (e) {}
+// ============== 立体渐变背景 ==============
+function drawGradientBackground() {
+  // 主背景渐变 - 深蓝到紫
+  const bgGrad = ctx.createLinearGradient(0, 0, 0, windowHeight);
+  bgGrad.addColorStop(0, '#1a1a2e');
+  bgGrad.addColorStop(0.5, '#16213e');
+  bgGrad.addColorStop(1, '#0f0f23');
+  ctx.fillStyle = bgGrad;
+  ctx.fillRect(0, 0, windowWidth, windowHeight);
+  
+  // 装饰性光晕
+  ctx.save();
+  ctx.globalAlpha = 0.15;
+  
+  // 左上角光晕
+  const glow1 = ctx.createRadialGradient(0, 0, 0, 0, 0, 300);
+  glow1.addColorStop(0, '#667eea');
+  glow1.addColorStop(1, 'transparent');
+  ctx.fillStyle = glow1;
+  ctx.fillRect(0, 0, 400, 400);
+  
+  // 右下角光晕
+  const glow2 = ctx.createRadialGradient(windowWidth, windowHeight, 0, windowWidth, windowHeight, 350);
+  glow2.addColorStop(0, '#f093fb');
+  glow2.addColorStop(1, 'transparent');
+  ctx.fillStyle = glow2;
+  ctx.fillRect(windowWidth - 400, windowHeight - 400, 400, 400);
+  
+  ctx.restore();
+  
+  // 装饰线条
+  ctx.strokeStyle = 'rgba(255,255,255,0.03)';
+  ctx.lineWidth = 1;
+  for (let i = 0; i < 20; i++) {
+    ctx.beginPath();
+    ctx.moveTo(0, i * 60);
+    ctx.lineTo(windowWidth, i * 60 + 100);
+    ctx.stroke();
+  }
+}
 
 // ============== 初始化 ==============
 function initGame() {
@@ -77,7 +110,6 @@ function initGame() {
   spawnFood();
 }
 
-// ============== 生成食物 ==============
 function spawnFood() {
   let newFood;
   do {
@@ -89,13 +121,11 @@ function spawnFood() {
   food = newFood;
 }
 
-// ============== 检查进化 ==============
 function checkEvolution() {
   for (let i = SNAKE_EVOLUTION.length - 1; i >= 0; i--) {
     if (foodEaten >= SNAKE_EVOLUTION[i].threshold) {
       if (currentEvolution !== SNAKE_EVOLUTION[i]) {
         currentEvolution = SNAKE_EVOLUTION[i];
-        // 进化提示
         tt.showToast && tt.showToast({
           title: `进化: ${currentEvolution.name}!`,
           icon: 'success',
@@ -136,8 +166,6 @@ function update() {
     foodEaten++;
     checkEvolution();
     spawnFood();
-    
-    // 加速
     if (CONFIG.speed > 100) {
       CONFIG.speed -= 3;
       clearInterval(gameLoop);
@@ -150,33 +178,43 @@ function update() {
 
 // ============== 绘制函数 ==============
 
-// 绘制背景
-function drawBackground() {
-  if (bgImage && bgImage.complete) {
-    ctx.drawImage(bgImage, 0, 0, windowWidth, windowHeight);
-  } else {
-    // 渐变背景
-    const gradient = ctx.createLinearGradient(0, 0, 0, windowHeight);
-    gradient.addColorStop(0, '#e8f5e9');
-    gradient.addColorStop(1, '#c8e6c9');
-    ctx.fillStyle = gradient;
-    ctx.fillRect(0, 0, windowWidth, windowHeight);
-  }
-}
-
-// 绘制游戏区域
 function drawPlayArea() {
-  // 半透明背景
-  ctx.fillStyle = 'rgba(255, 255, 255, 0.9)';
-  ctx.fillRect(PLAY_LEFT - 8, PLAY_TOP - 8, COLS * GRID_SIZE + 16, ROWS * GRID_SIZE + 16);
+  // 游戏区域阴影
+  ctx.save();
+  ctx.shadowColor = 'rgba(0,0,0,0.5)';
+  ctx.shadowBlur = 30;
+  ctx.shadowOffsetX = 0;
+  ctx.shadowOffsetY = 10;
   
-  // 边框
-  ctx.strokeStyle = currentEvolution.color;
+  // 游戏区域背景 - 立体感
+  const areaGrad = ctx.createLinearGradient(PLAY_LEFT, PLAY_TOP, PLAY_LEFT, PLAY_TOP + ROWS * GRID_SIZE);
+  areaGrad.addColorStop(0, 'rgba(30,30,50,0.95)');
+  areaGrad.addColorStop(1, 'rgba(20,20,40,0.95)');
+  
+  ctx.fillStyle = areaGrad;
+  roundRect(ctx, PLAY_LEFT - 10, PLAY_TOP - 10, COLS * GRID_SIZE + 20, ROWS * GRID_SIZE + 20, 15);
+  ctx.restore();
+  
+  // 立体边框
+  const borderGrad = ctx.createLinearGradient(PLAY_LEFT, PLAY_TOP, PLAY_LEFT + COLS * GRID_SIZE, PLAY_TOP + ROWS * GRID_SIZE);
+  borderGrad.addColorStop(0, currentEvolution.headColor);
+  borderGrad.addColorStop(0.5, currentEvolution.color);
+  borderGrad.addColorStop(1, currentEvolution.headColor);
+  
+  ctx.strokeStyle = borderGrad;
   ctx.lineWidth = 3;
-  ctx.strokeRect(PLAY_LEFT - 5, PLAY_TOP - 5, COLS * GRID_SIZE + 10, ROWS * GRID_SIZE + 10);
+  roundRectStroke(ctx, PLAY_LEFT - 8, PLAY_TOP - 8, COLS * GRID_SIZE + 16, ROWS * GRID_SIZE + 16, 12);
+  
+  // 内发光
+  ctx.save();
+  ctx.globalAlpha = 0.1;
+  ctx.strokeStyle = '#fff';
+  ctx.lineWidth = 1;
+  roundRectStroke(ctx, PLAY_LEFT - 5, PLAY_TOP - 5, COLS * GRID_SIZE + 10, ROWS * GRID_SIZE + 10, 10);
+  ctx.restore();
   
   // 网格
-  ctx.strokeStyle = 'rgba(200, 200, 200, 0.2)';
+  ctx.strokeStyle = 'rgba(100,100,120,0.15)';
   ctx.lineWidth = 0.5;
   for (let i = 0; i <= COLS; i++) {
     ctx.beginPath();
@@ -192,29 +230,35 @@ function drawPlayArea() {
   }
 }
 
-// 绘制食物
 function drawFood() {
   const x = PLAY_LEFT + food.x * GRID_SIZE + GRID_SIZE / 2;
   const y = PLAY_TOP + food.y * GRID_SIZE + GRID_SIZE / 2;
   const r = GRID_SIZE / 2 - 3;
   
-  // 光晕
+  // 外发光
+  ctx.save();
   ctx.shadowColor = '#ff6b6b';
-  ctx.shadowBlur = 12;
-  ctx.fillStyle = '#ff6b6b';
+  ctx.shadowBlur = 20;
+  
+  // 食物主体渐变
+  const foodGrad = ctx.createRadialGradient(x - r/3, y - r/3, 0, x, y, r);
+  foodGrad.addColorStop(0, '#ff9a9a');
+  foodGrad.addColorStop(0.7, '#ff6b6b');
+  foodGrad.addColorStop(1, '#ee5a5a');
+  
+  ctx.fillStyle = foodGrad;
   ctx.beginPath();
   ctx.arc(x, y, r, 0, Math.PI * 2);
   ctx.fill();
-  ctx.shadowBlur = 0;
+  ctx.restore();
   
   // 高光
-  ctx.fillStyle = 'rgba(255, 255, 255, 0.4)';
+  ctx.fillStyle = 'rgba(255,255,255,0.5)';
   ctx.beginPath();
   ctx.arc(x - r/3, y - r/3, r/3, 0, Math.PI * 2);
   ctx.fill();
 }
 
-// 绘制蛇
 function drawSnake() {
   const { color, headColor, glow } = currentEvolution;
   
@@ -225,14 +269,20 @@ function drawSnake() {
     const h = GRID_SIZE - 4;
     
     if (index === 0) {
-      // 蛇头
-      if (glow) {
-        ctx.shadowColor = headColor;
-        ctx.shadowBlur = 15;
-      }
-      ctx.fillStyle = headColor;
-      roundRect(ctx, x, y, w, h, 7);
-      ctx.shadowBlur = 0;
+      // 蛇头阴影
+      ctx.save();
+      ctx.shadowColor = headColor;
+      ctx.shadowBlur = glow ? 20 : 12;
+      ctx.shadowOffsetY = 3;
+      
+      // 蛇头渐变
+      const headGrad = ctx.createLinearGradient(x, y, x + w, y + h);
+      headGrad.addColorStop(0, headColor);
+      headGrad.addColorStop(1, color);
+      
+      ctx.fillStyle = headGrad;
+      roundRect(ctx, x, y, w, h, 8);
+      ctx.restore();
       
       // 眼睛
       ctx.fillStyle = '#fff';
@@ -241,79 +291,118 @@ function drawSnake() {
       
       switch (direction) {
         case 'right':
-          eye1X = x + w - 5; eye1Y = y + 5;
-          eye2X = x + w - 5; eye2Y = y + h - 5;
+          eye1X = x + w - 6; eye1Y = y + 6;
+          eye2X = x + w - 6; eye2Y = y + h - 6;
           break;
         case 'left':
-          eye1X = x + 5; eye1Y = y + 5;
-          eye2X = x + 5; eye2Y = y + h - 5;
+          eye1X = x + 6; eye1Y = y + 6;
+          eye2X = x + 6; eye2Y = y + h - 6;
           break;
         case 'up':
-          eye1X = x + 5; eye1Y = y + 5;
-          eye2X = x + w - 5; eye2Y = y + 5;
+          eye1X = x + 6; eye1Y = y + 6;
+          eye2X = x + w - 6; eye2Y = y + 6;
           break;
         case 'down':
-          eye1X = x + 5; eye1Y = y + h - 5;
-          eye2X = x + w - 5; eye2Y = y + h - 5;
+          eye1X = x + 6; eye1Y = y + h - 6;
+          eye2X = x + w - 6; eye2Y = y + h - 6;
           break;
       }
+      
+      // 眼睛光晕
+      ctx.save();
+      ctx.shadowColor = '#fff';
+      ctx.shadowBlur = 5;
       ctx.beginPath();
       ctx.arc(eye1X, eye1Y, eyeR, 0, Math.PI * 2);
       ctx.arc(eye2X, eye2Y, eyeR, 0, Math.PI * 2);
       ctx.fill();
+      ctx.restore();
       
       // 瞳孔
-      ctx.fillStyle = '#333';
+      ctx.fillStyle = '#222';
       ctx.beginPath();
       ctx.arc(eye1X, eye1Y, 1.5, 0, Math.PI * 2);
       ctx.arc(eye2X, eye2Y, 1.5, 0, Math.PI * 2);
       ctx.fill();
     } else {
-      // 蛇身
-      ctx.fillStyle = color;
-      roundRect(ctx, x, y, w, h, 5);
+      // 蛇身渐变
+      const bodyGrad = ctx.createLinearGradient(x, y, x + w, y + h);
+      bodyGrad.addColorStop(0, color);
+      bodyGrad.addColorStop(1, adjustColor(color, -20));
+      
+      ctx.fillStyle = bodyGrad;
+      roundRect(ctx, x, y, w, h, 6);
       
       // 身体花纹
       if (index % 2 === 0) {
-        ctx.fillStyle = 'rgba(255,255,255,0.15)';
-        roundRect(ctx, x + 3, y + 3, w - 6, h - 6, 3);
+        ctx.fillStyle = 'rgba(255,255,255,0.2)';
+        roundRect(ctx, x + 3, y + 3, w - 6, h - 6, 4);
       }
     }
   });
 }
 
-// 绘制顶部信息栏
+// 调整颜色亮度
+function adjustColor(hex, amount) {
+  const num = parseInt(hex.slice(1), 16);
+  const r = Math.max(0, Math.min(255, (num >> 16) + amount));
+  const g = Math.max(0, Math.min(255, ((num >> 8) & 0x00FF) + amount));
+  const b = Math.max(0, Math.min(255, (num & 0x0000FF) + amount));
+  return `#${(1 << 24 | r << 16 | g << 8 | b).toString(16).slice(1)}`;
+}
+
 function drawTopBar() {
-  ctx.fillStyle = 'rgba(255, 255, 255, 0.95)';
-  ctx.fillRect(0, 0, windowWidth, 85);
+  // 顶部栏背景 - 立体渐变
+  const barGrad = ctx.createLinearGradient(0, 0, 0, 75);
+  barGrad.addColorStop(0, 'rgba(30,30,50,0.98)');
+  barGrad.addColorStop(1, 'rgba(20,20,40,0.95)');
   
-  // 分数
-  ctx.fillStyle = '#333';
-  ctx.font = 'bold 18px Arial';
+  ctx.fillStyle = barGrad;
+  ctx.fillRect(0, 0, windowWidth, 75);
+  
+  // 底部高光线
+  ctx.strokeStyle = 'rgba(255,255,255,0.1)';
+  ctx.lineWidth = 1;
+  ctx.beginPath();
+  ctx.moveTo(0, 75);
+  ctx.lineTo(windowWidth, 75);
+  ctx.stroke();
+  
+  // 分数 - 立体文字
+  ctx.save();
+  ctx.shadowColor = 'rgba(255,200,0,0.5)';
+  ctx.shadowBlur = 10;
+  ctx.fillStyle = '#ffd700';
+  ctx.font = 'bold 22px Arial';
   ctx.textAlign = 'left';
-  ctx.fillText(`分数: ${score}`, 20, 30);
+  ctx.fillText(`分数: ${score}`, 20, 32);
+  ctx.restore();
   
+  ctx.fillStyle = 'rgba(255,255,255,0.6)';
   ctx.font = '14px Arial';
-  ctx.fillStyle = '#666';
-  ctx.fillText(`最高: ${highScore}`, 20, 52);
+  ctx.fillText(`最高: ${highScore}`, 20, 55);
   
   // 蛇形态
-  ctx.fillStyle = currentEvolution.color;
+  ctx.save();
+  ctx.shadowColor = currentEvolution.color;
+  ctx.shadowBlur = 8;
+  ctx.fillStyle = currentEvolution.headColor;
   ctx.font = 'bold 16px Arial';
   ctx.textAlign = 'right';
-  ctx.fillText(currentEvolution.name, windowWidth - 20, 30);
+  ctx.fillText(currentEvolution.name, windowWidth - 20, 32);
+  ctx.restore();
   
+  ctx.fillStyle = 'rgba(255,255,255,0.5)';
   ctx.font = '12px Arial';
-  ctx.fillStyle = '#999';
   ctx.fillText(`已吃: ${foodEaten}`, windowWidth - 20, 52);
 }
 
-// ============== 方向键控制 ==============
-const CONTROL_Y = windowHeight - 160;
-const BTN_SIZE = 55;
-const BTN_GAP = 5;
+// ============== 方向键控制 - 居中 ==============
+const BTN_SIZE = 60;
+const BTN_GAP = 8;
+const CONTROL_HEIGHT = BTN_SIZE * 3 + BTN_GAP * 2 + 40;
+const CONTROL_Y = PLAY_TOP + ROWS * GRID_SIZE + 30; // 紧贴游戏区域下方
 
-// 按钮位置
 const BUTTONS = {
   up:    { x: windowWidth / 2 - BTN_SIZE / 2, y: CONTROL_Y },
   down:  { x: windowWidth / 2 - BTN_SIZE / 2, y: CONTROL_Y + BTN_SIZE * 2 + BTN_GAP },
@@ -322,21 +411,54 @@ const BUTTONS = {
 };
 
 function drawControls() {
-  // 控制区背景
-  ctx.fillStyle = 'rgba(245, 245, 245, 0.95)';
-  ctx.fillRect(0, CONTROL_Y - 20, windowWidth, 180);
+  // 控制区背景 - 立体感
+  ctx.save();
+  ctx.shadowColor = 'rgba(0,0,0,0.3)';
+  ctx.shadowBlur = 20;
+  ctx.shadowOffsetY = 5;
+  
+  const ctrlGrad = ctx.createLinearGradient(0, CONTROL_Y - 15, 0, CONTROL_Y + CONTROL_HEIGHT);
+  ctrlGrad.addColorStop(0, 'rgba(35,35,55,0.95)');
+  ctrlGrad.addColorStop(1, 'rgba(25,25,45,0.95)');
+  
+  ctx.fillStyle = ctrlGrad;
+  roundRect(ctx, 10, CONTROL_Y - 15, windowWidth - 20, CONTROL_HEIGHT, 20);
+  ctx.restore();
   
   // 方向键
   Object.entries(BUTTONS).forEach(([dir, pos]) => {
     const isActive = direction === dir;
     
-    // 按钮背景
-    ctx.fillStyle = isActive ? currentEvolution.color : '#ddd';
-    roundRect(ctx, pos.x, pos.y, BTN_SIZE, BTN_SIZE, 12);
+    // 按钮阴影
+    ctx.save();
+    ctx.shadowColor = 'rgba(0,0,0,0.4)';
+    ctx.shadowBlur = 10;
+    ctx.shadowOffsetY = 3;
+    
+    // 按钮渐变
+    const btnGrad = ctx.createLinearGradient(pos.x, pos.y, pos.x, pos.y + BTN_SIZE);
+    if (isActive) {
+      btnGrad.addColorStop(0, currentEvolution.headColor);
+      btnGrad.addColorStop(1, currentEvolution.color);
+    } else {
+      btnGrad.addColorStop(0, 'rgba(80,80,100,0.9)');
+      btnGrad.addColorStop(1, 'rgba(50,50,70,0.9)');
+    }
+    
+    ctx.fillStyle = btnGrad;
+    roundRect(ctx, pos.x, pos.y, BTN_SIZE, BTN_SIZE, 15);
+    ctx.restore();
+    
+    // 按钮高光
+    ctx.save();
+    ctx.globalAlpha = 0.3;
+    ctx.fillStyle = '#fff';
+    roundRect(ctx, pos.x + 5, pos.y + 5, BTN_SIZE - 10, BTN_SIZE / 2 - 5, 10);
+    ctx.restore();
     
     // 箭头
-    ctx.fillStyle = isActive ? '#fff' : '#666';
-    ctx.font = 'bold 28px Arial';
+    ctx.fillStyle = isActive ? '#fff' : 'rgba(255,255,255,0.7)';
+    ctx.font = 'bold 26px Arial';
     ctx.textAlign = 'center';
     ctx.textBaseline = 'middle';
     
@@ -347,12 +469,10 @@ function drawControls() {
   ctx.textBaseline = 'alphabetic';
 }
 
-// 检查按钮点击
 function checkButtonPress(x, y) {
   for (const [dir, pos] of Object.entries(BUTTONS)) {
     if (x >= pos.x && x <= pos.x + BTN_SIZE &&
         y >= pos.y && y <= pos.y + BTN_SIZE) {
-      // 防止反向移动
       if ((dir === 'up' && direction !== 'down') ||
           (dir === 'down' && direction !== 'up') ||
           (dir === 'left' && direction !== 'right') ||
@@ -379,6 +499,21 @@ function roundRect(ctx, x, y, w, h, r) {
   ctx.quadraticCurveTo(x, y, x + r, y);
   ctx.closePath();
   ctx.fill();
+}
+
+function roundRectStroke(ctx, x, y, w, h, r) {
+  ctx.beginPath();
+  ctx.moveTo(x + r, y);
+  ctx.lineTo(x + w - r, y);
+  ctx.quadraticCurveTo(x + w, y, x + w, y + r);
+  ctx.lineTo(x + w, y + h - r);
+  ctx.quadraticCurveTo(x + w, y + h, x + w - r, y + h);
+  ctx.lineTo(x + r, y + h);
+  ctx.quadraticCurveTo(x, y + h, x, y + h - r);
+  ctx.lineTo(x, y + r);
+  ctx.quadraticCurveTo(x, y, x + r, y);
+  ctx.closePath();
+  ctx.stroke();
 }
 
 // ============== 游戏流程 ==============
@@ -410,7 +545,7 @@ function gameOver() {
 
 // ============== 绘制界面 ==============
 function draw() {
-  drawBackground();
+  drawGradientBackground();
   drawPlayArea();
   drawFood();
   drawSnake();
@@ -419,45 +554,71 @@ function draw() {
 }
 
 function drawStartScreen() {
-  drawBackground();
+  drawGradientBackground();
+  
+  // 标题面板
+  ctx.save();
+  ctx.shadowColor = 'rgba(0,0,0,0.5)';
+  ctx.shadowBlur = 30;
+  ctx.shadowOffsetY = 10;
+  
+  const panelGrad = ctx.createLinearGradient(windowWidth / 2 - 150, windowHeight / 2 - 180, windowWidth / 2 + 150, windowHeight / 2 + 150);
+  panelGrad.addColorStop(0, 'rgba(40,40,60,0.98)');
+  panelGrad.addColorStop(1, 'rgba(30,30,50,0.98)');
+  
+  ctx.fillStyle = panelGrad;
+  roundRect(ctx, windowWidth / 2 - 150, windowHeight / 2 - 180, 300, 320, 25);
+  ctx.restore();
   
   // 标题
-  ctx.fillStyle = 'rgba(255, 255, 255, 0.95)';
-  ctx.fillRect(windowWidth / 2 - 140, windowHeight / 2 - 150, 280, 280, 20);
-  
-  ctx.fillStyle = currentEvolution.color;
-  ctx.font = 'bold 28px Arial';
+  ctx.save();
+  ctx.shadowColor = currentEvolution.headColor;
+  ctx.shadowBlur = 15;
+  ctx.fillStyle = currentEvolution.headColor;
+  ctx.font = 'bold 32px Arial';
   ctx.textAlign = 'center';
-  ctx.fillText('🐍 康泰园贪吃蛇', windowWidth / 2, windowHeight / 2 - 90);
+  ctx.fillText('🐍 康泰园贪吃蛇', windowWidth / 2, windowHeight / 2 - 120);
+  ctx.restore();
   
-  ctx.fillStyle = '#666';
+  ctx.fillStyle = 'rgba(255,255,255,0.7)';
   ctx.font = '14px Arial';
-  ctx.fillText('点击方向键控制蛇移动', windowWidth / 2, windowHeight / 2 - 40);
-  ctx.fillText('每吃10个食物，蛇会进化变色！', windowWidth / 2, windowHeight / 2 - 15);
+  ctx.fillText('点击方向键控制蛇移动', windowWidth / 2, windowHeight / 2 - 70);
+  ctx.fillText('每吃10个食物，蛇会进化变色！', windowWidth / 2, windowHeight / 2 - 45);
   
   // 进化预览
-  ctx.fillStyle = '#999';
+  ctx.fillStyle = 'rgba(255,255,255,0.5)';
   ctx.font = '12px Arial';
-  ctx.fillText('进化路线:', windowWidth / 2, windowHeight / 2 + 20);
+  ctx.fillText('进化路线:', windowWidth / 2, windowHeight / 2);
   ctx.font = '11px Arial';
-  ctx.fillText('小青蛇 → 蓝蛇 → 紫蛇 → 金蛇', windowWidth / 2, windowHeight / 2 + 40);
-  ctx.fillText('→ 玫瑰蛇 → 火焰蛇 → 金龙蛇', windowWidth / 2, windowHeight / 2 + 58);
+  ctx.fillText('小青蛇 → 蓝蛇 → 紫蛇 → 金蛇', windowWidth / 2, windowHeight / 2 + 22);
+  ctx.fillText('→ 玫瑰蛇 → 火焰蛇 → 金龙蛇', windowWidth / 2, windowHeight / 2 + 42);
   
   // 开始按钮
-  ctx.fillStyle = '#4CAF50';
-  roundRect(ctx, windowWidth / 2 - 60, windowHeight / 2 + 80, 120, 45, 10);
+  ctx.save();
+  ctx.shadowColor = 'rgba(76,175,80,0.5)';
+  ctx.shadowBlur = 15;
+  ctx.shadowOffsetY = 5;
+  
+  const btnGrad = ctx.createLinearGradient(windowWidth / 2 - 70, windowHeight / 2 + 70, windowWidth / 2 + 70, windowHeight / 2 + 120);
+  btnGrad.addColorStop(0, '#66BB6A');
+  btnGrad.addColorStop(1, '#43A047');
+  
+  ctx.fillStyle = btnGrad;
+  roundRect(ctx, windowWidth / 2 - 70, windowHeight / 2 + 70, 140, 50, 15);
+  ctx.restore();
+  
   ctx.fillStyle = '#fff';
-  ctx.font = 'bold 18px Arial';
-  ctx.fillText('开始游戏', windowWidth / 2, windowHeight / 2 + 108);
+  ctx.font = 'bold 20px Arial';
+  ctx.fillText('开始游戏', windowWidth / 2, windowHeight / 2 + 102);
   
   // 最高分
   try {
     const savedHigh = tt.getStorageSync('snake_highscore');
     if (savedHigh) {
       highScore = savedHigh;
-      ctx.fillStyle = '#ff9800';
+      ctx.fillStyle = '#ffd700';
       ctx.font = '14px Arial';
-      ctx.fillText(`最高分: ${highScore}`, windowWidth / 2, windowHeight / 2 + 145);
+      ctx.fillText(`最高分: ${highScore}`, windowWidth / 2, windowHeight / 2 + 140);
     }
   } catch (e) {}
 }
@@ -466,39 +627,67 @@ function drawGameOver() {
   draw();
   
   // 遮罩
-  ctx.fillStyle = 'rgba(0, 0, 0, 0.6)';
+  ctx.fillStyle = 'rgba(0, 0, 0, 0.7)';
   ctx.fillRect(0, 0, windowWidth, windowHeight);
   
   // 面板
-  ctx.fillStyle = 'rgba(255, 255, 255, 0.98)';
-  roundRect(ctx, windowWidth / 2 - 130, windowHeight / 2 - 120, 260, 240, 20);
+  ctx.save();
+  ctx.shadowColor = 'rgba(0,0,0,0.5)';
+  ctx.shadowBlur = 30;
   
+  const panelGrad = ctx.createLinearGradient(windowWidth / 2 - 140, windowHeight / 2 - 130, windowWidth / 2 + 140, windowHeight / 2 + 130);
+  panelGrad.addColorStop(0, 'rgba(40,40,60,0.98)');
+  panelGrad.addColorStop(1, 'rgba(30,30,50,0.98)');
+  
+  ctx.fillStyle = panelGrad;
+  roundRect(ctx, windowWidth / 2 - 140, windowHeight / 2 - 130, 280, 260, 20);
+  ctx.restore();
+  
+  // 标题
+  ctx.save();
+  ctx.shadowColor = 'rgba(244,67,54,0.5)';
+  ctx.shadowBlur = 10;
   ctx.fillStyle = '#f44336';
-  ctx.font = 'bold 28px Arial';
+  ctx.font = 'bold 30px Arial';
   ctx.textAlign = 'center';
-  ctx.fillText('游戏结束', windowWidth / 2, windowHeight / 2 - 70);
+  ctx.fillText('游戏结束', windowWidth / 2, windowHeight / 2 - 75);
+  ctx.restore();
   
-  ctx.fillStyle = '#333';
-  ctx.font = '22px Arial';
+  ctx.fillStyle = '#fff';
+  ctx.font = '24px Arial';
   ctx.fillText(`得分: ${score}`, windowWidth / 2, windowHeight / 2 - 25);
   
-  ctx.fillStyle = currentEvolution.color;
+  ctx.fillStyle = currentEvolution.headColor;
   ctx.font = '16px Arial';
   ctx.fillText(`最终形态: ${currentEvolution.name}`, windowWidth / 2, windowHeight / 2 + 5);
-  ctx.fillText(`吃了 ${foodEaten} 个食物`, windowWidth / 2, windowHeight / 2 + 30);
+  ctx.fillText(`吃了 ${foodEaten} 个食物`, windowWidth / 2, windowHeight / 2 + 35);
   
   if (score >= highScore && score > 0) {
+    ctx.save();
+    ctx.shadowColor = 'rgba(255,152,0,0.5)';
+    ctx.shadowBlur = 10;
     ctx.fillStyle = '#ff9800';
-    ctx.font = 'bold 16px Arial';
-    ctx.fillText('🎉 新纪录！', windowWidth / 2, windowHeight / 2 + 60);
+    ctx.font = 'bold 18px Arial';
+    ctx.fillText('🎉 新纪录！', windowWidth / 2, windowHeight / 2 + 70);
+    ctx.restore();
   }
   
   // 再来一局按钮
-  ctx.fillStyle = '#4CAF50';
-  roundRect(ctx, windowWidth / 2 - 60, windowHeight / 2 + 75, 120, 45, 10);
+  ctx.save();
+  ctx.shadowColor = 'rgba(76,175,80,0.5)';
+  ctx.shadowBlur = 15;
+  
+  const btnGrad = ctx.createLinearGradient(windowWidth / 2 - 70, windowHeight / 2 + 85, windowWidth / 2 + 70, windowHeight / 2 + 135);
+  btnGrad.addColorStop(0, '#66BB6A');
+  btnGrad.addColorStop(1, '#43A047');
+  
+  ctx.fillStyle = btnGrad;
+  roundRect(ctx, windowWidth / 2 - 70, windowHeight / 2 + 85, 140, 50, 15);
+  ctx.restore();
+  
   ctx.fillStyle = '#fff';
-  ctx.font = 'bold 18px Arial';
-  ctx.fillText('再来一局', windowWidth / 2, windowHeight / 2 + 103);
+  ctx.font = 'bold 20px Arial';
+  ctx.fillText('再来一局', windowWidth / 2, windowHeight / 2 + 118);
 }
 
 // ============== 触摸事件 ==============
@@ -510,21 +699,19 @@ tt.onTouchStart((res) => {
   if (gameState === 'playing') {
     checkButtonPress(x, y);
   } else if (gameState === 'start') {
-    // 开始按钮
-    if (x >= windowWidth / 2 - 60 && x <= windowWidth / 2 + 60 &&
-        y >= windowHeight / 2 + 80 && y <= windowHeight / 2 + 125) {
+    if (x >= windowWidth / 2 - 70 && x <= windowWidth / 2 + 70 &&
+        y >= windowHeight / 2 + 70 && y <= windowHeight / 2 + 120) {
       startGame();
     }
   } else if (gameState === 'gameover') {
-    // 再来一局按钮
-    if (x >= windowWidth / 2 - 60 && x <= windowWidth / 2 + 60 &&
-        y >= windowHeight / 2 + 75 && y <= windowHeight / 2 + 120) {
+    if (x >= windowWidth / 2 - 70 && x <= windowWidth / 2 + 70 &&
+        y >= windowHeight / 2 + 85 && y <= windowHeight / 2 + 135) {
       startGame();
     }
   }
 });
 
-// 支持滑动（可选）
+// 支持滑动
 let touchStartX = 0, touchStartY = 0;
 tt.onTouchStart((res) => {
   touchStartX = res.touches[0].clientX;
@@ -549,11 +736,6 @@ tt.onTouchEnd((res) => {
 });
 
 // 初始化
-if (bgImage) {
-  bgImage.onload = drawStartScreen;
-  bgImage.onerror = drawStartScreen;
-} else {
-  drawStartScreen();
-}
+drawStartScreen();
 
-console.log('🐍 康泰园贪吃蛇 V2 - 已启动！');
+console.log('🐍 康泰园贪吃蛇 V3 - 立体设计版已启动！');
